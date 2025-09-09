@@ -1,0 +1,131 @@
+# Prototypical Networks on Omniglot 
+
+This project implements a **Prototypical Network** for **Few-Shot Learning** on the [Omniglot dataset](https://github.com/brendenlake/omniglot).
+The model learns to recognize new character classes with only a few labeled examples (support set).
+
+---
+
+## 📌 Features
+
+* Loads **Omniglot dataset** with train/validation split (`background` for training, `evaluation` for testing).
+* Custom **EpisodeDataset** for N-way K-shot tasks (e.g., 5-way 5-shot).
+* Prototypical Network encoder implemented in **PyTorch**.
+* Training loop with episodic learning.
+* **Evaluation + visualization** of support/query episodes.
+* **Confusion matrix** for model predictions.
+
+---
+
+## 📂 Project Structure
+
+```
+├── data/               # Omniglot dataset (downloaded automatically)
+├── prototypical_net.ipynb  # Main notebook
+├── README.md           # Documentation
+├── MetaLeraning.pdf    # theoritical explaination
+```
+
+---
+
+## ⚙️ Requirements
+
+* Python 3.8+
+* PyTorch
+* Torchvision
+* scikit-learn
+* matplotlib
+* numpy
+
+Install dependencies:
+
+```bash
+pip install torch torchvision scikit-learn matplotlib numpy
+```
+
+---
+
+## 🚀 Usage
+
+### 1. Imports
+
+All required libraries are imported at the top of the notebook.
+
+### 2. Load Data
+
+```python
+train_dataset = datasets.Omniglot(root="./data", background=True, download=True, transform=transform)
+test_dataset  = datasets.Omniglot(root="./data", background=False, download=True, transform=transform)
+```
+
+* **Background set** → Training
+* **Evaluation set** → Evaluation
+
+### 3. Episodic Dataset
+
+Episodes are sampled with `n_classes`, `n_support`, and `n_query`:
+
+```python
+episode_dataset = EpisodeDataset(train_dataset, n_classes=5, n_support=5, n_query=2, episodes_per_epoch=100)
+```
+
+Each episode provides:
+
+* **Support set** (few labeled examples per class)
+* **Query set** (examples to classify)
+
+### 4. Prototypical Network Encoder
+
+A simple **4-layer CNN** maps images to embeddings.
+
+```python
+encoder = ProtoNetEncoder(hidden_size=64)
+```
+
+### 5. Training
+
+Trains the network with episodic tasks:
+
+```python
+for epoch in range(10):
+    ...
+    print(f"Epoch {epoch+1}: Loss = ..., Acc = ...")
+```
+
+### 6. Evaluation
+
+Evaluate with unseen classes from the **evaluation split**.
+
+```python
+val_loss, val_acc = evaluate_and_visualize(encoder, val_episode_loader, device, n_visualize=2)
+print(f"Validation: Loss = {val_loss:.4f}, Acc = {val_acc:.4f}")
+```
+
+Supports **visualization of predictions** (green = correct, red = wrong):
+
+![](docs/sample_episode.png)
+
+### 7. Confusion Matrix
+
+```python
+cm = confusion_matrix(y_true, y_pred)
+ConfusionMatrixDisplay(cm).plot(cmap="Blues")
+```
+
+---
+
+## 📊 Results
+
+Example training logs:
+
+```
+Epoch 1: Loss = 0.2895, Acc = 0.9080
+Epoch 2: Loss = 0.2343, Acc = 0.9230
+Epoch 3: Loss = 0.1741, Acc = 0.9520
+...
+Validation: Loss = 0.1102, Acc = 0.9650
+```
+
+* Few-shot learning works well even with **5-way 5-shot episodes**.
+* Accuracy >95% after a few epochs.
+
+---
