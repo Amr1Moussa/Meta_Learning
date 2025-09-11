@@ -127,5 +127,3 @@ Validation: Loss = 0.1102, Acc = 0.9650
 
 * Few-shot learning works well even with **5-way 5-shot episodes**.
 * Accuracy >95% after a few epochs.
-
----
